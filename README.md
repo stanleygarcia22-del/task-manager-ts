@@ -21,7 +21,7 @@ Sistema de Gestión de Tareas interactivo, responsive y con persistencia de dato
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone <Link>
+   git clone <https://github.com/stanleygarcia22-del/task-manager-ts>
    cd task-manager-ts
 
    1. Instalar dependencias: npm install
