@@ -1,60 +1,115 @@
-import './style.css'
-import heroImg from './assets/hero.png'
-import typescriptLogo from './assets/typescript.svg'
-import viteLogo from './assets/vite.svg'
-import { setupCounter } from './counter.ts'
+console.log("🚀 El archivo main.ts ha cargado correctamente");
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${typescriptLogo}" class="framework" alt="TypeScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+import { TaskManager } from './utils/TaskManager.ts';
+import { Render } from './ui/Render';
+import type { Priority, Category, TaskStatus, Task } from './models/Task';
 
-<div class="ticks"></div>
+// Instancias principales
+const taskManager = new TaskManager();
+const renderer = new Render('task-list');
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://www.typescriptlang.org" target="_blank">
-          <img class="button-icon" src="${typescriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+// Elementos del Formulario
+const taskForm = document.getElementById('task-form') as HTMLFormElement;
+const taskIdInput = document.getElementById('task-id') as HTMLInputElement;
+const titleInput = document.getElementById('task-title') as HTMLInputElement;
+const descInput = document.getElementById('task-description') as HTMLTextAreaElement;
+const categorySelect = document.getElementById('task-category') as HTMLSelectElement;
+const prioritySelect = document.getElementById('task-priority') as HTMLSelectElement;
+const formTitle = document.getElementById('form-title') as HTMLElement;
+const btnSave = document.getElementById('btn-save') as HTMLButtonElement;
+const btnCancel = document.getElementById('btn-cancel') as HTMLButtonElement;
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+// Elementos de Filtros y Búsqueda
+const searchInput = document.getElementById('search-input') as HTMLInputElement;
+const filterStatusSelect = document.getElementById('filter-status') as HTMLSelectElement;
+const filterPrioritySelect = document.getElementById('filter-priority') as HTMLSelectElement;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+/**
+ * Actualiza la vista filtrando las tareas.
+ */
+function updateView(): void {
+  const currentStatus = (filterStatusSelect?.value as TaskStatus) || 'todas';
+  const currentPriority = (filterPrioritySelect?.value as Priority | 'todas') || 'todas';
+  const searchQuery = searchInput?.value || '';
+
+  const filteredTasks = taskManager.filterTasks(currentStatus, currentPriority, searchQuery);
+
+  renderer.renderTaskList(
+    filteredTasks,
+    (id) => {
+      taskManager.toggleTaskStatus(id);
+      updateView();
+    },
+    (task) => prepareEditForm(task),
+    (id) => {
+      taskManager.deleteTask(id);
+      updateView();
+    }
+  );
+}
+
+/**
+ * Prepara el formulario para editar una tarea.
+ */
+function prepareEditForm(task: Task): void {
+  if (!taskIdInput || !titleInput || !descInput || !categorySelect || !prioritySelect) return;
+
+  taskIdInput.value = task.id;
+  titleInput.value = task.title;
+  descInput.value = task.description;
+  categorySelect.value = task.category;
+  prioritySelect.value = task.priority;
+
+  if (formTitle) formTitle.textContent = 'Editar Tarea';
+  if (btnSave) btnSave.textContent = 'Actualizar Tarea';
+  if (btnCancel) btnCancel.classList.remove('hidden');
+  titleInput.focus();
+}
+
+/**
+ * Resetea el formulario a su estado original.
+ */
+function resetForm(): void {
+  if (taskForm) taskForm.reset();
+  if (taskIdInput) taskIdInput.value = '';
+  if (formTitle) formTitle.textContent = 'Nueva Tarea';
+  if (btnSave) btnSave.textContent = 'Guardar Tarea';
+  if (btnCancel) btnCancel.classList.add('hidden');
+}
+
+// Evento Submit del Formulario
+if (taskForm) {
+  taskForm.addEventListener('submit', (e: Event) => {
+    e.preventDefault();
+
+    const id = taskIdInput ? taskIdInput.value : '';
+    const title = titleInput ? titleInput.value : '';
+    const description = descInput ? descInput.value : '';
+    const category = (categorySelect ? categorySelect.value : 'estudio') as Category;
+    const priority = (prioritySelect ? prioritySelect.value : 'media') as Priority;
+
+    if (!title.trim()) return;
+
+    if (id) {
+      taskManager.updateTask(id, { title, description, category, priority });
+    } else {
+      taskManager.addTask(title, description, category, priority);
+    }
+
+    resetForm();
+    updateView();
+  });
+}
+
+// Evento Cancelar Edición
+if (btnCancel) {
+  btnCancel.addEventListener('click', resetForm);
+}
+
+// Eventos de Filtros y Búsqueda en tiempo real
+if (searchInput) searchInput.addEventListener('input', updateView);
+if (filterStatusSelect) filterStatusSelect.addEventListener('change', updateView);
+if (filterPrioritySelect) filterPrioritySelect.addEventListener('change', updateView);
+
+// Renderizado inicial al abrir la app
+updateView();

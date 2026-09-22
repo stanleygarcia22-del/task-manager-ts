@@ -1,13 +1,123 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>task-manager-ts</title>
+    <title>Sistema de Gestión de Tareas</title>
+    <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <div id="app" class="container">
+      <header class="app-header">
+        <h1>📋 Gestión de Tareas</h1>
+        <p>Organiza tus actividades diarias de forma sencilla y eficiente</p>
+      </header>
+
+      <main class="app-main">
+        <!-- Panel Lateral: Formulario de Nueva Tarea -->
+        <section class="task-form-section">
+          <h2 id="form-title">Nueva Tarea</h2>
+          <form id="task-form">
+            <input type="hidden" id="task-id" value="" />
+
+            <div class="form-group">
+              <label for="task-title">Título *</label>
+              <input
+                type="text"
+                id="task-title"
+                placeholder="Ej. Estudiar TypeScript"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="task-description">Descripción</label>
+              <textarea
+                id="task-description"
+                rows="3"
+                placeholder="Detalles sobre la tarea..."
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="task-category">Categoría</label>
+                <select id="task-category">
+                  <option value="estudio">Estudio</option>
+                  <option value="trabajo">Trabajo</option>
+                  <option value="personal">Personal</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="task-priority">Prioridad</label>
+                <select id="task-priority">
+                  <option value="baja">Baja</option>
+                  <option value="media" selected>Media</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="btn-save" class="btn btn-primary">
+                Guardar Tarea
+              </button>
+              <button
+                type="button"
+                id="btn-cancel"
+                class="btn btn-secondary hidden"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Panel Principal: Lista, Filtros y Búsqueda -->
+        <section class="task-list-section">
+          <!-- Barra de Filtros y Búsqueda -->
+          <div class="filters-bar">
+            <div class="search-box">
+              <input
+                type="text"
+                id="search-input"
+                placeholder="🔍 Buscar por título..."
+              />
+            </div>
+
+            <div class="filter-controls">
+              <div class="filter-group">
+                <label for="filter-status">Estado:</label>
+                <select id="filter-status">
+                  <option value="todas">Todas</option>
+                  <option value="pendientes">Pendientes</option>
+                  <option value="completadas">Completadas</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-priority">Prioridad:</label>
+                <select id="filter-priority">
+                  <option value="todas">Todas</option>
+                  <option value="alta">Alta</option>
+                  <option value="media">Media</option>
+                  <option value="baja">Baja</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contenedor dinámico de Tareas -->
+          <div id="task-list" class="task-list">
+            <!-- Las tareas se renderizan dinámicamente con TypeScript -->
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
